@@ -1,0 +1,379 @@
+======================================================================
+QUESTION 2 - TENDER DUPLICATE DETECTION
+======================================================================
+
+Total notices: 12000
+
+Columns:
+['notice_id', 'portal_id', 'published_at', 'title', 'body', 'estimated_value', 'closing_date']
+
+Text preprocessing completed.
+
+Example of cleaned text:
+                                               title                                               text
+0  Procurement and commissioning of CCTV surveill...  procurement and commissioning of cctv surveill...
+1  Desilting and lining of the bus terminal at Os...  desilting and lining of the bus terminal at os...
+2  Upgradation of CCTV surveillance infrastructur...  upgradation of cctv surveillance infrastructur...
+
+TF-IDF representation created.
+TF-IDF matrix shape: (12000, 5000)
+
+Number of labelled pairs: 900
+
+Label distribution:
+label
+different    621
+same         279
+Name: count, dtype: int64
+
+Pairs successfully evaluated: 900
+
+Average similarity by label:
+label
+different    0.211712
+same         0.874580
+Name: similarity, dtype: float64
+
+
+======================================================================
+THRESHOLD EVALUATION
+======================================================================
+ threshold  accuracy  precision   recall       f1
+      0.10  0.353333   0.324042 1.000000 0.489474
+      0.15  0.520000   0.392405 1.000000 0.563636
+      0.20  0.696667   0.505435 1.000000 0.671480
+      0.25  0.786667   0.592357 1.000000 0.744000
+      0.30  0.870000   0.704545 1.000000 0.826667
+      0.35  0.946667   0.853211 1.000000 0.920792
+      0.40  0.978889   0.936242 1.000000 0.967071
+      0.45  0.986667   0.958763 1.000000 0.978947
+      0.50  0.988889   0.965398 1.000000 0.982394
+      0.55  0.992222   0.975524 1.000000 0.987611
+      0.60  0.994444   0.989286 0.992832 0.991055
+      0.65  0.987778   0.992647 0.967742 0.980036
+      0.70  0.981111   0.996212 0.942652 0.968692
+      0.75  0.957778   1.000000 0.863799 0.926923
+      0.80  0.924444   1.000000 0.756272 0.861224
+      0.85  0.888889   1.000000 0.641577 0.781659
+      0.90  0.832222   1.000000 0.458781 0.628993
+      0.95  0.788889   1.000000 0.318996 0.483696
+
+Best threshold based on F1:
+0.6000000000000002
+Accuracy: 0.9944444444444445
+Precision: 0.9892857142857143
+Recall: 0.992831541218638
+F1: 0.9910554561717353
+
+
+======================================================================
+FINAL PERFORMANCE
+======================================================================
+Accuracy : 0.9944444444444445
+Precision: 0.9892857142857143
+Recall   : 0.992831541218638
+F1 Score : 0.9910554561717353
+
+Confusion Matrix:
+[[618   3]
+ [  2 277]]
+
+
+======================================================================
+PART (A) COMPLETED
+======================================================================
+
+
+======================================================================
+QUESTION 2(b) - REDUCED REPRESENTATION
+======================================================================
+
+Total notices: 12000
+
+Original representation:
+TF-IDF shape: (12000, 5000)
+
+Reduced representation:
+SVD shape: (12000, 100)
+Explained variance: 0.549169054107573
+
+
+======================================================================
+REDUCED REPRESENTATION THRESHOLD RESULTS
+======================================================================
+ threshold  accuracy  precision   recall       f1
+      0.10  0.314444   0.311384 1.000000 0.474894
+      0.15  0.361111   0.326698 1.000000 0.492498
+      0.20  0.450000   0.360465 1.000000 0.529915
+      0.25  0.561111   0.413947 1.000000 0.585519
+      0.30  0.656667   0.474490 1.000000 0.643599
+      0.35  0.732222   0.536538 1.000000 0.698373
+      0.40  0.806667   0.615894 1.000000 0.762295
+      0.45  0.854444   0.680488 1.000000 0.809869
+      0.50  0.903333   0.762295 1.000000 0.865116
+      0.55  0.928889   0.817109 0.992832 0.896440
+      0.60  0.955556   0.891803 0.974910 0.931507
+      0.65  0.967778   0.934028 0.964158 0.948854
+      0.70  0.962222   0.958801 0.917563 0.937729
+      0.75  0.952222   0.964567 0.878136 0.919325
+      0.80  0.924444   0.964758 0.784946 0.865613
+      0.85  0.891111   0.973822 0.666667 0.791489
+      0.90  0.844444   0.979310 0.508961 0.669811
+      0.95  0.811111   1.000000 0.390681 0.561856
+
+
+======================================================================
+BEST REDUCED REPRESENTATION RESULT
+======================================================================
+Threshold : 0.6500000000000001
+Accuracy  : 0.9677777777777777
+Precision : 0.9340277777777778
+Recall    : 0.96415770609319
+F1 Score  : 0.9488536155202821
+
+
+======================================================================
+SPACE REDUCTION
+======================================================================
+Original dimensions: 5000
+Reduced dimensions: 100
+Dimensionality reduction: 98.00%
+
+
+======================================================================
+PART (B) COMPLETED
+======================================================================
+
+
+======================================================================
+QUESTION 2(c) - SUBLINEAR RETRIEVAL
+======================================================================
+
+Total notices: 12000
+
+TF-IDF shape: (12000, 5000)
+
+Number of labelled SAME pairs: 279
+
+Building nearest-neighbor index...
+Index created.
+
+Testing candidate size: 10
+Retrieval Recall: 0.9534
+Time: 28.8587 seconds
+
+Testing candidate size: 25
+Retrieval Recall: 0.9928
+Time: 29.8197 seconds
+
+Testing candidate size: 50
+Retrieval Recall: 0.9928
+Time: 28.0975 seconds
+
+Testing candidate size: 100
+Retrieval Recall: 0.9928
+Time: 29.1848 seconds
+
+Testing candidate size: 200
+Retrieval Recall: 0.9928
+Time: 29.0118 seconds
+
+Testing candidate size: 500
+Retrieval Recall: 0.9928
+Time: 28.0513 seconds
+
+
+======================================================================
+SUBLINEAR RETRIEVAL RESULTS
+======================================================================
+ candidate_size  retrieval_recall  time_seconds
+             10          0.953405     28.858746
+             25          0.992832     29.819661
+             50          0.992832     28.097471
+            100          0.992832     29.184785
+            200          0.992832     29.011813
+            500          0.992832     28.051266
+
+
+======================================================================
+SELECTED CANDIDATE SIZE
+======================================================================
+Candidate size: 10
+Retrieval recall: 0.953405017921147
+Time: 28.858746100000644 seconds
+
+
+======================================================================
+COMPARISON REDUCTION
+======================================================================
+Full corpus size: 12000
+Exact comparisons per query: 12000
+10 candidates -> 99.92% fewer comparisons
+25 candidates -> 99.79% fewer comparisons
+50 candidates -> 99.58% fewer comparisons
+100 candidates -> 99.17% fewer comparisons
+200 candidates -> 98.33% fewer comparisons
+500 candidates -> 95.83% fewer comparisons
+
+
+======================================================================
+PART (C) COMPLETED
+======================================================================
+
+
+======================================================================
+QUESTION 2(d) - DATABASE STORAGE AND INDEXING
+======================================================================
+
+Total notices loaded: 12000
+
+SQLite database created: tender_retrieval.db
+Database insertion time: 0.2047 seconds
+Index creation time: 0.0920 seconds
+
+Rows stored in database: 12000
+
+Testing indexed notice-ID lookups:
+N000001 -> Found | Time: 0.0767 ms
+N000009 -> Found | Time: 0.0593 ms
+N000017 -> Found | Time: 0.0495 ms
+N000025 -> Found | Time: 0.0344 ms
+N000033 -> Found | Time: 0.0281 ms
+
+Average indexed lookup time: 0.0496 ms
+
+Portal P136 notices: 91
+Indexed portal query time: 0.0780 ms
+
+Database size: 61.38 MB
+
+
+======================================================================
+DATABASE AND INDEX SUMMARY
+======================================================================
+Database: tender_retrieval.db
+Rows: 12000
+Indexes: 4
+Average notice-ID lookup: 0.0496 ms
+Database size: 61.38 MB
+
+
+======================================================================
+PART (D) COMPLETED
+======================================================================
+
+
+======================================================================
+QUESTION 2(e) - FULL CORPUS EXPERIMENT
+======================================================================
+
+Total notices: 12000
+
+
+======================================================================
+BEFORE MITIGATION
+======================================================================
+Representation shape: (12000, 5000)
+Before-mitigation runtime: 4.6075 seconds
+
+
+======================================================================
+FAILURE / SKEW ANALYSIS
+======================================================================
+Total labelled same pairs: 279
+Class distribution:
+label
+different    621
+same         279
+Name: count, dtype: int64
+
+Number of portals: 260
+Largest portal size: 1426
+Smallest portal size: 2
+Average notices per portal: 46.15384615384615
+
+
+======================================================================
+AFTER MITIGATION
+======================================================================
+Reduced representation shape: (12000, 100)
+Explained variance: 0.549169054107573
+After-mitigation runtime: 3.2534 seconds
+
+
+======================================================================
+RUNTIME COMPARISON
+======================================================================
+Before mitigation: 4.6075 seconds
+After mitigation: 3.2534 seconds
+Runtime reduction: 29.39%
+
+
+======================================================================
+20-MINUTE NIGHTLY BUDGET
+======================================================================
+Budget: 1200 seconds
+Before mitigation: WITHIN BUDGET
+After mitigation: WITHIN BUDGET
+
+
+======================================================================
+PART (E) COMPLETED
+======================================================================
+======================================================================
+QUESTION 2(e) - FULL CORPUS EXPERIMENT
+======================================================================
+
+Total notices: 12000
+
+
+======================================================================
+BEFORE MITIGATION
+======================================================================
+Representation shape: (12000, 5000)
+Before-mitigation runtime: 4.6075 seconds
+
+
+======================================================================
+FAILURE / SKEW ANALYSIS
+======================================================================
+Total labelled same pairs: 279
+Class distribution:
+label
+different    621
+same         279
+Name: count, dtype: int64
+
+Number of portals: 260
+Largest portal size: 1426
+Smallest portal size: 2
+Average notices per portal: 46.15384615384615
+
+
+======================================================================
+AFTER MITIGATION
+======================================================================
+Reduced representation shape: (12000, 100)
+Explained variance: 0.549169054107573
+After-mitigation runtime: 3.2534 seconds
+
+
+======================================================================
+RUNTIME COMPARISON
+======================================================================
+Before mitigation: 4.6075 seconds
+After mitigation: 3.2534 seconds
+Runtime reduction: 29.39%
+
+
+======================================================================
+20-MINUTE NIGHTLY BUDGET
+======================================================================
+Budget: 1200 seconds
+Before mitigation: WITHIN BUDGET
+After mitigation: WITHIN BUDGET
+
+
+======================================================================
+PART (E) COMPLETED
+======================================================================

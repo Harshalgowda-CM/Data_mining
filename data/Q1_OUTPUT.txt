@@ -1,0 +1,497 @@
+======================================================================
+                 ANNAPPURNA STORES - QUESTION 1
+              ADVANCED DATA MINING & MODERN WAREHOUSING
+======================================================================
+
+
+======================================================================
+Q1(a) - DATA INGESTION AND PARTITIONED OBJECT STORE
+======================================================================
+
+Command executed:
+python ingest.py
+
+Output:
+
+Combining files...
+
+Raw rows: 1,137,585
+Rows removed as duplicate/resend lines: 16,661
+Final rows: 1,120,924
+
+Writing partitioned Parquet files...
+
+========================================
+INGESTION COMPLETE
+========================================
+Final rows : 1,120,924
+Checksum   : 3869df8a90db1f237e590c5f6badc7c626ae69a79ae2588778d8764f43844ace
+Output     : C:\Users\ub02-glab-027\Downloads\data_2\data\object_store
+
+Partition structure:
+
+object_store/
+    store_id=S01/
+        year=2024/
+            month=01/
+            month=02/
+            ...
+    store_id=S02/
+        year=2024/
+            ...
+    ...
+    store_id=S12/
+        year=2024/
+            ...
+
+The sales data is stored as partitioned Parquet files by:
+Store -> Year -> Month
+
+
+======================================================================
+Q1(b) - IDEMPOTENT INGESTION / DUPLICATE VERIFICATION
+======================================================================
+
+Original ingestion:
+
+Raw rows                         : 1,137,585
+Duplicate/resend lines removed  :    16,661
+Final rows                       : 1,120,924
+
+Checksum:
+3869df8a90db1f237e590c5f6badc7c626ae69a79ae2588778d8764f43844ace
+
+Final object-store duplicate verification:
+
+Command executed:
+python check_duplicates.py
+
+Output:
+
+============================================================
+PARQUET DUPLICATE CHECK
+============================================================
+Total rows : 1120924
+Unique lines: 1120924
+============================================================
+
+Therefore:
+
+Total rows  = 1,120,924
+Unique lines = 1,120,924
+
+No duplicate lines remain in the final object store.
+
+
+======================================================================
+Q1(c) - STAR SCHEMA / DIMENSIONAL MODEL
+======================================================================
+
+Star schema implemented with:
+
+FACT TABLE:
+    fact_sales
+
+DIMENSION TABLES:
+    dim_date
+    dim_store
+    dim_product
+    dim_category
+
+Dimension counts:
+
+dim_date       : 366
+dim_store      : 12
+dim_category   : 14
+dim_product    : 1,224
+
+The fact table uses surrogate keys to avoid repeating store,
+category and product attributes.
+
+Product identity is resolved using:
+    product_code + business date
+
+The validity period is checked using:
+    valid_from
+    valid_to
+
+This handles retired and reissued product codes correctly.
+
+
+Analytical query used:
+
+SELECT ds.store_id,
+       dc.category_name,
+       dd.month_name,
+       dd.day_name,
+       ROUND(SUM(fs.revenue),2) AS total_revenue
+FROM fact_sales fs
+JOIN dim_store ds
+    ON fs.store_sk = ds.store_sk
+JOIN dim_category dc
+    ON fs.category_sk = dc.category_sk
+JOIN dim_date dd
+    ON fs.business_date = dd.full_date
+GROUP BY ds.store_id,
+         dc.category_name,
+         dd.month,
+         dd.month_name,
+         dd.day_of_week,
+         dd.day_name
+ORDER BY ds.store_id,
+         dd.month,
+         dd.day_of_week,
+         dc.category_name
+LIMIT 30;
+
+
+Sample output:
+
+S12 | Baby Care              | January | Monday | 71255.62
+S12 | Bakery                 | January | Monday | 8536.40
+S12 | Beverages              | January | Monday | 21087.99
+S12 | Biscuits & Snacks      | January | Monday | 5987.70
+
+
+======================================================================
+Q1(d) - TEMPORAL PRICE HANDLING
+======================================================================
+
+Price history is stored in:
+
+    price_revisions
+
+Relevant columns:
+
+    product_sk
+    mrp
+    selling_price
+    effective_from
+    effective_to
+
+
+March 2024 reporting date:
+
+    2024-03-15
+
+Price selection condition:
+
+    effective_from <= reporting_date
+    AND reporting_date < effective_to
+
+
+Example March 2024 results:
+
+P100005  -> Selling price 103.45
+P100007  -> Selling price 129.42
+P100019  -> Selling price 62.95
+P100026  -> Selling price 304.63
+P100033  -> Selling price 763.12
+P100035  -> Selling price 1456.57
+P100044  -> Selling price 737.05
+P100049  -> Selling price 66.95
+P100057  -> Selling price 215.95
+
+
+December 2024 reporting date:
+
+    2024-12-15
+
+Example December 2024 results:
+
+P100005  -> Selling price 114.37
+P100007  -> Selling price 155.06
+P100019  -> Selling price 74.65
+P100026  -> Selling price 315.91
+P100033  -> Selling price 828.62
+P100035  -> Selling price 1810.38
+P100044  -> Selling price 737.05
+P100049  -> Selling price 68.93
+P100057  -> Selling price 233.39
+
+The same query logic is used for different reporting periods.
+Only the reporting date changes.
+
+Therefore historical reports use the price revision valid for
+the selected reporting period.
+
+
+======================================================================
+Q1(e) - FEDERATED QUERY
+======================================================================
+
+Technology used:
+
+    DuckDB
+    PostgreSQL
+    Parquet object store
+
+DuckDB version:
+
+    1.5.5
+
+Sales data source:
+
+    Parquet object store
+
+Master-data source:
+
+    PostgreSQL
+
+Query engine:
+
+    DuckDB
+
+
+Federated query result examples:
+
+('S01', 'Annapurna Jayanagar', 'Bengaluru',
+ 'Baby Care', 7748587.28)
+
+('S01', 'Annapurna Jayanagar', 'Bengaluru',
+ 'Bakery', 1120754.18)
+
+('S01', 'Annapurna Jayanagar', 'Bengaluru',
+ 'Beverages', 2081128.63)
+
+('S01', 'Annapurna Jayanagar', 'Bengaluru',
+ 'Staples & Grains', 8479375.52)
+
+('S02', 'Annapurna Koramangala', 'Bengaluru',
+ 'Baby Care', 5735124.78)
+
+
+ENGINE EVIDENCE:
+
+READ_PARQUET
+    -> Sales data from Parquet object store
+
+POSTGRES_SCAN
+    -> stores table from PostgreSQL
+
+POSTGRES_SCAN
+    -> products table from PostgreSQL
+
+POSTGRES_SCAN
+    -> product_categories table from PostgreSQL
+
+
+Federated query completed successfully.
+
+Sales source : Parquet object store
+Master source: PostgreSQL
+Query engine : DuckDB
+
+No copying of the sales data into PostgreSQL was required.
+
+
+======================================================================
+Q1(f) - MONTHLY REVENUE RECONCILIATION
+======================================================================
+
+Finance reference file:
+
+    finance_monthly.csv
+
+Finance values:
+
+2024-01 : 38,446,071.33
+2024-02 : 34,887,085.55
+2024-03 : 42,457,899.09
+2024-04 : 37,958,457.37
+2024-05 : 41,764,716.40
+2024-06 : 38,987,082.82
+2024-07 : 40,527,291.81
+2024-08 : 45,252,181.75
+2024-09 : 44,615,037.46
+2024-10 : 56,359,195.92
+2024-11 : 51,583,838.47
+2024-12 : 50,745,209.00
+
+
+Pipeline monthly revenue from the CLEAN object store:
+
+2024-01 : 38,446,071.33
+2024-02 : 34,887,085.55
+2024-03 : 41,971,649.09
+2024-04 : 37,958,457.37
+2024-05 : 41,764,716.40
+2024-06 : 38,987,082.82
+2024-07 : 40,295,160.11
+2024-08 : 45,252,181.75
+2024-09 : 44,615,037.46
+2024-10 : 56,359,195.92
+2024-11 : 51,583,838.47
+2024-12 : 50,745,259.48
+
+
+RECONCILIATION:
+
+Month       Pipeline Revenue    Finance Revenue      Difference
+
+Jan         38,446,071.33       38,446,071.33        0.00
+Feb         34,887,085.55       34,887,085.55        0.00
+Mar         41,971,649.09       42,457,899.09       -486,250.00
+Apr         37,958,457.37       37,958,457.37        0.00
+May         41,764,716.40       41,764,716.40        0.00
+Jun         38,987,082.82       38,987,082.82        0.00
+Jul         40,295,160.11       40,527,291.81       -232,131.70
+Aug         45,252,181.75       45,252,181.75        0.00
+Sep         44,615,037.46       44,615,037.46        0.00
+Oct         56,359,195.92       56,359,195.92        0.00
+Nov         51,583,838.47       51,583,838.47        0.00
+Dec         50,745,259.48       50,745,209.00           50.48
+
+
+CLASSIFICATION:
+
+March 2024:
+Revenue-definition difference.
+
+Difference:
+    -486,250.00
+
+Reason to investigate:
+    Institutional order / revenue-definition difference.
+
+
+July 2024:
+Source-data problem.
+
+Difference:
+    -232,131.70
+
+Reason:
+    S07 Pune had missing till-server exports for 3 days.
+
+
+December 2024:
+Small difference:
+    +50.48
+
+Classification:
+    Finance rounding difference.
+
+
+Other months:
+    Pipeline and finance revenue reconcile exactly.
+
+
+TAKE-BACK ITEMS FOR FINANCE:
+
+1. March 2024:
+   Investigate the revenue-definition difference and institutional order.
+
+2. July 2024:
+   Investigate missing S07 source exports for 3 days.
+
+3. December 2024:
+   Confirm the small rounding difference of ₹50.48.
+
+4. Other months:
+   No reconciliation difference.
+
+
+======================================================================
+VISUALIZATION
+======================================================================
+
+Visualization script:
+
+    visualization.py
+
+Visualizations generated from the CLEAN Parquet object store:
+
+1. Monthly Revenue
+   File:
+   visualizations/monthly_revenue.png
+
+2. Revenue by Store
+   File:
+   visualizations/revenue_by_store.png
+
+3. Revenue by Category
+   File:
+   visualizations/revenue_by_category.png
+
+
+MONTHLY REVENUE DATA:
+
+Jan : ₹38,446,071.33
+Feb : ₹34,887,085.55
+Mar : ₹41,971,649.09
+Apr : ₹37,958,457.37
+May : ₹41,764,716.40
+Jun : ₹38,987,082.82
+Jul : ₹40,295,160.11
+Aug : ₹45,252,181.75
+Sep : ₹44,615,037.46
+Oct : ₹56,359,195.92
+Nov : ₹51,583,838.47
+Dec : ₹50,745,259.48
+
+
+REVENUE BY STORE:
+
+S01 : ₹56,995,199.14
+S02 : ₹47,194,947.02
+S03 : ₹61,864,894.46
+S04 : ₹40,201,258.53
+S05 : ₹30,159,037.54
+S06 : ₹52,584,302.70
+S07 : ₹35,219,585.45
+S08 : ₹34,477,161.43
+S09 : ₹27,978,995.77
+S10 : ₹59,327,041.98
+S11 : ₹32,429,712.91
+S12 : ₹44,433,598.82
+
+
+REVENUE BY CATEGORY:
+
+Staples & Grains       : ₹98,677,244.71
+Baby Care              : ₹88,746,237.02
+Edible Oils            : ₹82,736,636.78
+Dairy                  : ₹39,696,588.61
+Personal Care          : ₹37,437,446.74
+Frozen & Ready to Eat  : ₹29,765,097.34
+Home Care              : ₹28,253,823.00
+Beverages              : ₹25,805,866.86
+Stationery & General   : ₹25,749,321.35
+Spices & Masala        : ₹18,408,992.48
+Confectionery          : ₹17,251,020.23
+Fruits & Vegetables    : ₹15,314,853.80
+Bakery                 : ₹12,957,549.04
+Biscuits & Snacks      : ₹7,335,274.17
+
+
+======================================================================
+FINAL DATA QUALITY VERIFICATION
+======================================================================
+
+Command:
+
+python check_duplicates.py
+
+Output:
+
+============================================================
+PARQUET DUPLICATE CHECK
+============================================================
+Total rows : 1120924
+Unique lines: 1120924
+============================================================
+
+Final clean dataset:
+
+1,120,924 total rows
+1,120,924 unique bill-line records
+
+Checksum:
+
+3869df8a90db1f237e590c5f6badc7c626ae69a79ae2588778d8764f43844ace
+
+
+======================================================================
+END OF QUESTION 1 OUTPUT
+======================================================================
